@@ -1,20 +1,19 @@
 {
-  "name": "api-proxy-server",
+  "name": "sty-tg-proxy",
   "version": "1.0.0",
-  "description": "API Proxy Server",
+  "description": "STY Telegram API Proxy",
   "main": "server.js",
+
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server.js"
   },
+
   "dependencies": {
-    "axios": "^1.6.0",
+    "axios": "^1.6.8",
     "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "express": "^4.18.3"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.0"
-  },
+
   "engines": {
     "node": ">=18"
   }
