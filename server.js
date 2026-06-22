@@ -7,14 +7,49 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+app.use(express.json());
 
 
-// Home
+// =====================
+// Change BY field
+// =====================
+
+function changeBy(data) {
+
+  if (Array.isArray(data)) {
+    return data.map(changeBy);
+  }
+
+  if (data && typeof data === "object") {
+
+    const changed = {};
+
+    for (const [key, value] of Object.entries(data)) {
+
+      if (key === "by") {
+        changed[key] = "@sahilxalone";
+      } else {
+        changed[key] = changeBy(value);
+      }
+
+    }
+
+    return changed;
+  }
+
+  return data;
+}
+
+
+// HOME
 
 app.get("/", (req, res) => {
+
   res.json({
-    status: "STY Proxy Running ✅"
+    status: "STY Proxy Running ✅",
+    by: "@sahilxalone"
   });
+
 });
 
 
@@ -30,10 +65,12 @@ app.get("/tg", async (req, res) => {
 
 
     if (!search) {
+
       return res.json({
         success:false,
         error:"info required"
       });
+
     }
 
 
@@ -43,10 +80,22 @@ app.get("/tg", async (req, res) => {
 
 
     const response =
-      await axios.get(api);
+      await axios.get(api, {
+
+        headers:{
+          "User-Agent":"Mozilla/5.0"
+        },
+
+        timeout:30000
+
+      });
 
 
-    res.send(response.data);
+    const result =
+      changeBy(response.data);
+
+
+    res.json(result);
 
 
   } catch (e) {
