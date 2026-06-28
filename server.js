@@ -3,130 +3,76 @@ const axios = require("axios");
 const cors = require("cors");
 
 const app = express();
-
 const PORT = process.env.PORT || 3000;
+
+// Your API Key
+const API_KEY = "OGGYxKRISH";
 
 app.use(cors());
 app.use(express.json());
 
-
-// =====================
-// Modify Response
-// Change by + remove credits
-// =====================
-
-function modifyData(data) {
-
-  if (Array.isArray(data)) {
-    return data.map(modifyData);
-  }
-
-  if (data && typeof data === "object") {
-
-    const changed = {};
-
-    for (const [key, value] of Object.entries(data)) {
-
-      // Remove API owner fields
-      if (
-        key === "tag" ||
-        key === "developer" ||
-        key === "key_expiry"
-      ) {
-        continue;
-      }
-
-      // Change by field
-      if (key === "by") {
-        changed[key] = "@sahilxalone";
-      } else {
-        changed[key] = modifyData(value);
-      }
-
-    }
-
-    return changed;
-  }
-
-  return data;
-}
-
-
-// =====================
-// HOME
-// =====================
-
+// Home Page
 app.get("/", (req, res) => {
-
-  res.json({
-    status: "STY Proxy Running ✅",
-    by: "@sahilxalone"
-  });
-
+    res.json({
+        status: true,
+        message: "API is running successfully.",
+        developer: "@sahilxalone",
+        contact: "https://t.me/sahilxalone"
+    });
 });
 
+// Proxy API
+// Example:
+// /TG/free/=123456789
+// /TG/user/=123456789
 
-// =====================
-// TG API
-// =====================
+app.get("/TG/:type/=:term", async (req, res) => {
+    try {
+        const { type, term } = req.params;
 
-app.get("/tg", async (req, res) => {
+        const url = `https://api.igfollows.site/TG/index.php?type=${encodeURIComponent(type)}&key=${API_KEY}&term=${encodeURIComponent(term)}`;
 
-  try {
+        const response = await axios.get(url, {
+            timeout: 30000,
+            headers: {
+                "User-Agent": "Mozilla/5.0"
+            }
+        });
 
-    const search =
-      req.query.info ||
-      req.query.id;
+        let data = response.data;
 
+        if (typeof data === "object" && data !== null) {
+            // Replace developer info
+            if ("tag" in data) data.tag = "@sahilxalone";
+            if ("developer" in data) data.developer = "@sahilxalone";
 
-    if (!search) {
+            // Remove key_expiry if present
+            delete data.key_expiry;
+        }
 
-      return res.json({
-        success: false,
-        error: "info required"
-      });
+        res.status(response.status).json(data);
 
+    } catch (err) {
+        if (err.response) {
+            return res.status(err.response.status).send(err.response.data);
+        }
+
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
     }
-
-
-    const api =
-      "https://api.igfollows.site/TG/index.php?type=user&key=OGGYxKRISH&term=" +
-      encodeURIComponent(search);
-
-
-    const response = await axios.get(api, {
-
-      headers: {
-        "User-Agent": "Mozilla/5.0"
-      },
-
-      timeout: 30000
-
-    });
-
-
-    const result = modifyData(response.data);
-
-
-    res.json(result);
-
-
-  } catch (e) {
-
-    res.status(500).json({
-      success: false,
-      error: e.message
-    });
-
-  }
-
 });
 
-
-// =====================
-// SERVER START
-// =====================
+app.use((req, res) => {
+    res.status(404).json({
+        status: false,
+        message: "Invalid Endpoint",
+        developer: "@sahilxalone",
+        contact: "https://t.me/sahilxalone"
+    });
+});
 
 app.listen(PORT, () => {
-  console.log("Running on PORT " + PORT);
+    console.log(`✅ Server running on port ${PORT}`);
 });
